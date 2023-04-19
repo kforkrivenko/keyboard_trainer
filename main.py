@@ -40,7 +40,7 @@ class TypingTrainer:
         self.quit.pack(pady=10)
 
         # Настройка клавиатуры
-        self.textbox.bind("<Return>", self.check_word)
+        self.textbox.bind("<KeyPress>", self.check_word)
         self.textbox.focus_set()
 
         # Запуск программы
@@ -52,6 +52,7 @@ class TypingTrainer:
         self.i = 0
         self.mistakes = 0
         self.start_time = None
+        self.a = ''
 
     def upload(self):
         filepath = filedialog.askopenfilename()
@@ -112,6 +113,13 @@ class TypingTrainer:
         self.start_time += time.time() - ps  # не учитываем время, потраченное на меню
 
     def check_letter(self, newval):
+        if newval == self.a:
+            self.new_word()
+            self.correct_chars += 1
+            self.total_chars += 1
+            self.update_stat()
+            return False
+
         if newval == '':
             self.i = 0
             return True
@@ -119,12 +127,26 @@ class TypingTrainer:
         if self.i < min(len(self.current_word), len(newval)) and self.current_word[self.i] == newval[self.i]:
             self.i += 1
             self.label.config(text="Отлично!")
+            self.correct_chars += 1
+            self.total_chars += 1
+            self.update_stat()
             return True
         else:
             self.label.config(text="Неправильно!")
             self.mistakes += 1
             self.total_chars += 1
+            self.update_stat()
             return False
+
+    def update_stat(self):
+
+        # обновление точности и скорости печати
+        self.accuracy = (self.correct_chars / self.total_chars) * 100
+        self.accuracy_label.config(text=f"Точность: {round(self.accuracy, 2)}%")
+        if self.start_time:
+            elapsed_time = (time.time() - self.start_time) # секунд
+            self.wpm = self.total_chars / elapsed_time
+            self.wpm_label.config(text=f"Скорость печати: {round(self.wpm, 2)} символов в секунду")
 
     def new_word(self):
         # выбор случайных слов из списка
@@ -136,27 +158,18 @@ class TypingTrainer:
         # проверка правильности введенного слова
         self.level_label.config(text=f"Уровень: {self.level}")
 
-        if self.textbox.get() == self.current_word:
+        if len(event.widget.get() + event.char) != len(self.current_word):
+            return
+
+        if event.widget.get() + event.char == self.current_word:
             self.label.config(text="Отлично!")
-            self.new_word()
-            self.correct_chars += len(self.current_word)
-            self.total_chars += len(self.current_word)
+            self.a = event.char
             self.textbox.delete(0, tk.END)
 
             self.step += 1  # следующий шаг
             self.level = self.step // 5 + 1  # новый уровень
         else:
             self.label.config(text="Неправильно!")
-            self.mistakes += 1
-            self.total_chars += 1
-
-        # обновление точности и скорости печати
-        self.accuracy = (self.correct_chars / self.total_chars) * 100
-        self.accuracy_label.config(text=f"Точность: {round(self.accuracy, 2)}%")
-        if self.start_time:
-            elapsed_time = (time.time() - self.start_time) # секунд
-            self.wpm = self.total_chars / elapsed_time
-            self.wpm_label.config(text=f"Скорость печати: {round(self.wpm, 2)} символов в секунду")
 
 
 root = tk.Tk()
