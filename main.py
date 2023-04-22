@@ -23,7 +23,7 @@ class TypingTrainer:
         check = (root.register(self.check_letter), "%P")
 
         # Создание виджетов
-        self.label = tk.Label(master, text="Для проверки слова нажмите Enter")
+        self.label = tk.Label(master, text="Начните вводить слово")
         self.textbox = tk.Entry(master, validate="key", validatecommand=check)
         self.display_word = tk.Label(master, text="")
         self.accuracy_label = tk.Label(master, text="")
